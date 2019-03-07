@@ -5,6 +5,7 @@ import itertools
 import pprint
 import re
 import warnings
+import logging
 
 from bson import SON, json_util
 from bson.code import Code
@@ -38,6 +39,8 @@ NULLIFY = 1
 CASCADE = 2
 DENY = 3
 PULL = 4
+
+logger = logging.getLogger(__name__)
 
 
 class BaseQuerySet(object):
@@ -593,7 +596,7 @@ class BaseQuerySet(object):
             full_result=full_result,
             **update)
 
-    def modify(self, upsert=False, full_response=False, remove=False, new=False, **update):
+    def modify(self, upsert=False, full_response=False, remove=False, new=False, log=False, **update):
         """Update and return the updated document.
 
         Returns either the document before or after modification based on `new`
@@ -628,6 +631,10 @@ class BaseQuerySet(object):
         query = queryset._query
         if not IS_PYMONGO_3 or not remove:
             update = transform.update(queryset._document, **update)
+
+        if log:
+            logger.debug('query: %s, update: %s', query, update)
+
         sort = queryset._ordering
 
         try:
